@@ -2,7 +2,7 @@ import cv2
 import torch
 from ultralytics import YOLO
 
-model = YOLO("runs/detect/train3/weights/best.pt")  # use onnx model
+model = YOLO("./best.pt")  # use onnx model
 
 # model.export(format='onnx', half=True) # use for exporting
 
