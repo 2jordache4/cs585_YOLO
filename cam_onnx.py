@@ -71,7 +71,9 @@ while cap.isOpened():
 
         elif des is not None and first_des is not None:
             matches = matcher.knnMatch(first_des, des, k=2)
-            good = [m for m, n in matches if m.distance < 0.8 * n.distance]
+            for m, n in matches: 
+              if m.distance < 0.8 * n.distance: 
+                  good.append([m]) 
 
             if len(good) > 5:
                 x1, y1, x2, y2 = best_coords
