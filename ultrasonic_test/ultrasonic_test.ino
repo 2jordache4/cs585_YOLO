@@ -63,14 +63,14 @@ public:
   Ultrasonic(int echo, int trig, int pin_out) {
     this->echo = echo;
     this->trig = trig;
-    this->thresh = 20;
+    this->thresh = 100;
     this->pin_out = pin_out;
 
     pinMode(echo, INPUT);
     pinMode(trig, OUTPUT);
     pinMode(pin_out, OUTPUT);
 
-    digitalWrite(this->pin_out, LOW);
+    digitalWrite(this->pin_out, 0);
   }
 
   int getDistance() {
@@ -83,21 +83,23 @@ public:
     return (int)(pulseIn(this->echo, HIGH) / 58);
   }
 
-  void setThreshold(int thresh){
+  void setThreshold(int thresh) {
     this->thresh = thresh;
   }
 
-  void checkThreshold(){
+  bool checkThreshold() {
     int dist = this->getDistance();
 
-    if(dist > 350){
+    if (dist > 350) {
       return;
     }
-
-    if(dist < this->thresh){
+    
+    if (dist < this->thresh) {
       digitalWrite(this->pin_out, HIGH);
+      return true;
     } else {
       digitalWrite(this->pin_out, LOW);
+      return false;
     }
   }
 };
@@ -113,7 +115,7 @@ int right_val = 0;
 int left_val = 0;
 
 int ultra_time = 0;
-int dist = 0;
+bool obstacle = false;
 
 byte data[5];
 
@@ -123,8 +125,6 @@ void setup() {
 
   rightSide.setSpeed(0);
   leftSide.setSpeed(0);
-
-  ultra_time = millis();
 }
 
 /*put your main code here, to run repeatedly*/
@@ -142,29 +142,35 @@ void loop() {
   if (Serial.available() > 0) {
     Serial.readBytesUntil('\n', data, 5);
 
-    if((data[0] & 0x10) != 0){ // changing ultrasonic settings
-      sensor.setThreshold(data[1]);
-    } else { // motor values
-      right_val = data[1];
-      left_val = data[2];
+    // motor values
+    right_val = data[1];
+    left_val = data[2];
 
-      if ((data[0] & 0x1) != 0) {
-        right_val *= -1;
-      }
-
-      if ((data[0] & 0x2) != 0) {
-        left_val *= -1;
-      }
+    if ((data[0] & 0x1) != 0) {
+      right_val *= -1;
     }
+
+    if ((data[0] & 0x2) != 0) {
+      left_val *= -1;
+    }
+    
   }
 
-  rightSide.setSpeed(right_val);
-  leftSide.setSpeed(left_val);
+  
+    if (sensor.checkThreshold()) {
+      rightSide.setSpeed(0);
+      leftSide.setSpeed(0);
+      obstacle = true;
+    } else {
+      obstacle = false;
+    }
 
-  if ((millis() - ultra_time) < 200){
-    sensor.checkThreshold();
-    ultra_time = millis();
+  
+
+  if (!obstacle) {
+    rightSide.setSpeed(right_val);
+    leftSide.setSpeed(left_val);
   }
 
-  delay(100);
+  delay(200);
 }
