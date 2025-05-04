@@ -1,10 +1,15 @@
-import cv2
 import onnxruntime as ort
 import numpy as np
 import time
 
-device_is_pi = False
+# CarUnit, SIFTDetect, and TargetUnit
+from modlib import *
 
+# Straight Balance: r=70, l=86
+
+device_is_pi = True
+
+# defines functions based on whether the code is on the Pi or a laptop
 if device_is_pi:
     from picamera2 import Picamera2
     
@@ -30,6 +35,8 @@ if device_is_pi:
         return frame, in_img
         
 else:
+    import cv2
+    
     def init_camera():
         cap = cv2.VideoCapture(0)
     
@@ -52,76 +59,6 @@ else:
         in_img = np.expand_dims(in_img, axis=0)  # Add batch dim
         
         return frame, in_img
-
-
-class CarUnit:
-    def __init__(self, dev, ultra_pin=None):
-        self.dev = dev
-        self.ultra = ultra_pin
-        
-    def connect(self):
-        # open dev/file
-        pass
-        
-    def release(self):
-        # close dev/file
-        pass
-    
-    def write(r_motor=0, l_motor=0):
-        # encode motor values
-        
-        # send over serial
-        pass
-    
-    def set_ultra(self, thresh):
-        # build config msg
-        
-        # sent over serial
-        pass
-
-class SIFTdetect:
-    def __init__(self):
-        self.sift = cv2.SIFT_create()
-        self.matcher = cv2.BFMatcher()
-        
-        self.target = None
-        
-    def match_target(self, frame, bboxes):
-        # not boxes availible
-        if bboxes.shape[0] == 0:
-            return None
-        
-        # get best box index
-        best_idx = np.argmax(bboxes[:,4])
-        best_box = bboxes[best_idx, :]
-        
-        # crop the best box area
-        if best_box[0] < 0: best_box[0] = 0
-        if best_box[1] < 0: best_box[1] = 0
-        if best_box[2] > frame.shape[0]: best_box[2] = frame.shape[0]
-        if best_box[3] > frame.shape[0]: best_box[3] = frame.shape[0]
-        
-        best_crop = cv2.cvtColor(frame[best_box[1]:best_box[3], best_box[0]:best_box[2]], cv2.COLOR_BGR2GRAY)
-        
-        kp, des = self.sift.detectAndCompute(best_crop, None)
-        
-        if self.target is None:
-            self.target = des
-            
-            # save the first descriptors 
-            # I kinda want to make this like adapting so it can save features specific to a person
-            # rather than person + background but right now i think this is okay
-        
-        else:
-            matches = self.matcher.knnMatch(self.target, des, k=2)
-            
-            good = [] #[m.distance < 0.8 * n.distance for m, n in matches]
-            for m, n in matches: 
-                if m.distance < 0.8 * n.distance: 
-                    good.append([m])
-                  
-            if len(good) > 20:# kp threshhold, 10 was pretty consistent but im not convinced its enough
-                return best_idx
 
 def process_output(results, thresh, tol, bbox=False):
     
@@ -201,6 +138,14 @@ def format_opencv(x):
     
     return map(int, y)
 
+print("Creating Data Modules...")
+sifter = SIFTdetect()
+
+targeter = TargetUnit(sifter.clear_target)
+
+car = CarUnit("/dev/ttyACM0")
+car.connect()
+
 print("Loading Model...")
 session = ort.InferenceSession("./best.onnx")
 input_name = session.get_inputs()[0].name
@@ -208,46 +153,42 @@ input_name = session.get_inputs()[0].name
 print("Starting Capture...")
 cap = init_camera()
 
-sifter = SIFTdetect()
-
-first_des = None
-
 print("Starting Loop...")
 print("\n")
-saved = 3
+
 while True:
+    # timing for fps
     start = time.time()
     
-    # get camera image
+    # get camera image, and proces through model
     frame, in_img = get_frame(cap)
-    
-    # run image through model
     outputs = session.run(None, {input_name: in_img})[0]  
     
     # process model output
-    outputs, bboxes = process_output(outputs, 0.7, 0.8, bbox=True)
+    outputs, bboxes = process_output(outputs, thresh=0.7, tol=0.6, bbox=True)
     
     # apply sift
     target_idx = sifter.match_target(frame, bboxes)
     
-    # put boxes on image
-    add_bboxes(frame, bboxes, target_idx)
+    # get motor values
+    target = None if target_idx is None else outputs[target_idx, 0]-160
+    
+    r_val, l_val = targeter.get_motor_vals(target)
+    car.write_motors(r_motor=r_val, l_motor=l_val)
 
-    end = time.time()
+    end = time.time() # everything below is for diagnostics 
     
-    if saved > 0 and outputs.shape[0] > 1:
-        cv2.imwrite(f"saved[{saved}].jpg", frame)
-        saved -= 1
+    print(f"t: {target} r: {r_val}, l: {l_val} | {1/(end-start):f} fps, {outputs.shape[0]} detected")
+    
+    # add_bboxes(frame, bboxes, target_idx)
         
-    cv2.imshow("ONNX", frame)
+    # cv2.imshow("ONNX", frame)
     
-    print(f"\033[A\r{1/(end-start):f} fps, {outputs.shape[0]} detected")
-    
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    # if cv2.waitKey(1) & 0xFF == ord('q'):
+        # break
 
 print("Stoping Capture...")
-close_camera(cap)
+close_camera()
 cv2.destroyAllWindows()
 
 print("Script Done")
