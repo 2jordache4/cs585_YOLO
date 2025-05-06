@@ -3,6 +3,11 @@ import json
 import shutil
 from tqdm import tqdm
 
+"""
+This file took the COCO dataset, and pruned out images and labels we did not need to create a custom 
+dataset of images either containing humans, or not.
+"""
+
 def prepare_yolo_dataset(
     annotation_path,
     image_dir,
@@ -74,19 +79,19 @@ def prepare_yolo_dataset(
 
 
 prepare_yolo_dataset(
-    annotation_path='./cs585_YOLO/coco_dataset/annotations/instances_train2017.json',
-    image_dir = './cs585_YOLO/coco_dataset/train2017',
-    output_image_dir='./cs585_YOLO/custom_dataset/images/train',
-    output_label_dir='./cs585_YOLO/custom_dataset/labels/train',
+    annotation_path='./coco_dataset/annotations/instances_train2017.json',
+    image_dir = './coco_dataset/train2017',
+    output_image_dir='./custom_dataset/images/train',
+    output_label_dir='./custom_dataset/labels/train',
     category_id=1,  # person
     empty_ratio=0.15
 )
 
 prepare_yolo_dataset(
-    annotation_path='./cs585_YOLO/coco_dataset/annotations/instances_val2017.json',
-    image_dir='./cs585_YOLO/coco_dataset/val2017',
-    output_image_dir='./cs585_YOLO/custom_dataset/images/val',
-    output_label_dir='./cs585_YOLO/custom_dataset/labels/val',
+    annotation_path='./coco_dataset/annotations/instances_val2017.json',
+    image_dir='./coco_dataset/val2017',
+    output_image_dir='./custom_dataset/images/val',
+    output_label_dir='./custom_dataset/labels/val',
     category_id=1,  
     empty_ratio=0.15
 )
