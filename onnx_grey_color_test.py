@@ -2,6 +2,9 @@ import cv2
 import onnxruntime as ort
 import numpy as np
 import time
+"""
+This file was used to test the FPS between the grayscale model, and the RGB model
+"""
 
 device_is_pi = False
 
