@@ -5,7 +5,7 @@ This repo contains code for a robotic car that identifies and follows a person. 
 https://cocodataset.org/#download
 
 # Final Report
-
+The final report is located in the main branch under the name "final_report_ec535"
 
 # Demonstration Video
 https://drive.google.com/file/d/1ubJ_GeN5jYDUqzw84ipfvh0CRGRoClTm/view?usp=sharing
