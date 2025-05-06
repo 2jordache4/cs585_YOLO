@@ -1,8 +1,18 @@
 # Project Overview
 This repo contains code for a robotic car that identifies and follows a person. The car uses a robotic car kit with an Arduino controlling the hardware and a Raspberry Pi 3 handling the image processing and main control loop.
 
+# Dataset
+https://universe.roboflow.com/leo-ueno/people-detection-o4rdr
+
+# Final Report
+
+
+# Demonstration Video
+https://drive.google.com/file/d/1ubJ_GeN5jYDUqzw84ipfvh0CRGRoClTm/view?usp=sharing
+
 # File Locations
 ## main
+The main branch contains the code for trainging and testing the YOLO model
 
 ## hardware_model
 The hardware_model branch contains the code for the Raspberry Pi. It consists of the model generated form the main branch and can interface with the code from the hardware branch.
