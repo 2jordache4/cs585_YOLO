@@ -1,5 +1,8 @@
 import os
 import cv2
+"""
+This file was used to convert the custom dataset from RGB to grayscale.
+"""
 
 src_path = './custom_dataset/images/val'
 dst_path = './greyscale_dataset/images/val'
