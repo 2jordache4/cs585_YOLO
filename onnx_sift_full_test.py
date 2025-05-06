@@ -2,6 +2,9 @@ import cv2
 import onnxruntime as ort
 import numpy as np
 import time
+"""
+This file was used to test the FPS between full frame vs cropped frame for SIFT. 
+"""
 
 device_is_pi = False
 
