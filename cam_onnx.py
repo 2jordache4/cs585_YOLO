@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
 import onnxruntime as ort
+"""
+This file was used to first test ONNX and ensure that it would properly run after being exported
+"""
 
 session = ort.InferenceSession("runs/detect/train3/weights/best.onnx")
 input_name = session.get_inputs()[0].name
