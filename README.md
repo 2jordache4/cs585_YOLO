@@ -12,7 +12,7 @@ https://drive.google.com/file/d/1ubJ_GeN5jYDUqzw84ipfvh0CRGRoClTm/view?usp=shari
 
 # File Locations
 ## main
-The main branch contains the code for trainging and testing the YOLO model
+The main branch contains the code for training and testing the YOLO model
 
 ## hardware_model
 The hardware_model branch contains the code for the Raspberry Pi. It consists of the model generated form the main branch and can interface with the code from the hardware branch.
