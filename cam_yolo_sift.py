@@ -1,5 +1,8 @@
 import cv2
 from ultralytics import YOLO
+"""
+This file was used for testing the first iteration of SIFT to ensure it properly works
+"""
 
 model = YOLO("runs/detect/train3/weights/best.pt")
 device = "mps" 
